@@ -10,11 +10,10 @@ parser.add_argument("-t", "--token", dest="token", help="set bot token")
 args = parser.parse_args()
 print(args.token)
 
-def ping_server():
+def ping_server(HOST, PORT):
     HOST, PORT = "electrumx-ch-1.feathercoin.ch", 50001
 
     m = b'{"id": 2, "method": "server.version"}\n'
-    jsonObj = json.loads(m)
 
     # Create a socket (SOCK_STREAM means a TCP socket)
     sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -28,20 +27,18 @@ def ping_server():
 
         # Receive data from the server and shut down
         received = sock.recv(1024)
-        x = received
     finally:
         sock.close()
-        return(x)
+    version_dict = json.loads(received)
+    return version_dict["result"]
 
 
-version_starter = ping_server()
+version = ping_server("electrumx-ch-1.feathercoin.ch", 50001)
 
-version_dict = json.loads(version_starter)
+def sendMessage(token, chat_id, text):
+    url = "https://api.telegram.org/bot{}/sendMessage".format(token)
 
-version_list = version_dict["result"]
-
-method = "sendMessage"
-url = "https://api.telegram.org/bot{}/{}".format(args.token, method)
+    r = requests.post(url, data = {"chat_id": chat_id, "text": text})
 
 
-r = requests.post(url, data = {"chat_id": '@Bot_T1', "text": version_list})
+sendMessage(args.token, '@Bot_T1', version)
