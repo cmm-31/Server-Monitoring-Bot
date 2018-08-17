@@ -22,10 +22,10 @@ def ping_server(HOST, PORT):
     finally:
         sock.close()
     version_dict = json.loads(received)
-    if "ElectrumX 1.5.1" in version_dict["result"]:
-        return True
+    if version_dict["result"][0].startswith("ElectrumX"):
+        return "The server is up and running."
     else:
-        return False
+        return "The server isn't respoding correctly. Please check that."
 
 
 def sendMessage(token, chat_id, text):
@@ -34,6 +34,6 @@ def sendMessage(token, chat_id, text):
     requests.post(url, data={"chat_id": chat_id, "text": text})
 
 
-version = ping_server("electrumx-ch-1.feathercoin.ch", 50001)
+success = ping_server("electrumx-ch-1.feathercoin.ch", 50001)
 
-sendMessage(args.token, args.chat_id, version)
+sendMessage(args.token, args.chat_id, success)
