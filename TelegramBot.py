@@ -7,11 +7,13 @@ import argparse
 
 parser = argparse.ArgumentParser()
 parser.add_argument("-t", "--token", dest="token", help="set bot token")
+parser.add_argument("-id", "--chat_id", dest="chat_id", help="set chat_id")
 args = parser.parse_args()
 print(args.token)
+print(args.chat_id)
+
 
 def ping_server(HOST, PORT):
-    HOST, PORT = "electrumx-ch-1.feathercoin.ch", 50001
 
     m = b'{"id": 2, "method": "server.version"}\n'
 
@@ -19,26 +21,24 @@ def ping_server(HOST, PORT):
     sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 
     try:
-        # Connect to server and send data
         sock.connect((HOST, PORT))
-        #import pdb; pdb.set_trace()
-
         sock.sendall(m)
 
-        # Receive data from the server and shut down
         received = sock.recv(1024)
     finally:
         sock.close()
     version_dict = json.loads(received)
-    return version_dict["result"]
+
+    return bool(version_dict["result"])
 
 
 version = ping_server("electrumx-ch-1.feathercoin.ch", 50001)
 
+
 def sendMessage(token, chat_id, text):
     url = "https://api.telegram.org/bot{}/sendMessage".format(token)
 
-    r = requests.post(url, data = {"chat_id": chat_id, "text": text})
+    requests.post(url, data={"chat_id": chat_id, "text": text})
 
 
-sendMessage(args.token, '@Bot_T1', version)
+sendMessage(args.token, args.chat_id, version)
