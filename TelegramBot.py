@@ -13,7 +13,6 @@ args = parser.parse_args()
 
 def ping_server(HOST, PORT):
     # Create a socket (SOCK_STREAM means a TCP socket)
-
     sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 
     try:
@@ -26,7 +25,7 @@ def ping_server(HOST, PORT):
     finally:
         sock.close()
         version_dict = json.loads(received)
-        if version_dict["result"][0].startswith("lectrumX"):
+        if version_dict["result"][0].startswith("ElectrumX"):
             return True
         else:
             return False
@@ -44,18 +43,13 @@ hosts = ["electrumx-ch-1.feathercoin.ch", "electrumx-de-2.feathercoin.ch",
         "electrumxftc.trezarcoin.com", "electrum.feathercoin.network",
         "electrumx-gb-1.feathercoin.network", "electrumx-gb-2.feathercoin.network"]
 
+# Running the code
+
 for host in hosts:
     success = ping_server(host, 50001)
     if success is True:
-        servers_working.append(host)
+        message = "This Server is up and running: " + host
     else:
-        servers_not_working.append(host)
+        message = "The following server(s) isn't/aren't responding properly. Please check this: " + host
 
-servers_not_working_str = ''.join(map(str, servers_not_working))
-
-if success is True:
-    message = "The servers  are up and running."
-else:
-    message = "The following server(s) isn't/aren't responding properly. Please check this: " + servers_not_working_str
-
-sendMessage(args.token, args.chat_id, message)
+    sendMessage(args.token, args.chat_id, message)
