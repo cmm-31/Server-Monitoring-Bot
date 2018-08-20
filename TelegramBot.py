@@ -1,14 +1,14 @@
 # Server Monitoring Bot
 import socket
 import json
-import requests
 import argparse
 import logging
-
+import requests
 
 parser = argparse.ArgumentParser()
 parser.add_argument("-t", "--token", dest="token", help="set bot token")
 parser.add_argument("-id", "--chat_id", dest="chat_id", help="set the chat_id")
+parser.add_argument("-ho", "--hosts", dest="hosts", help="set the hosts")
 args = parser.parse_args()
 
 
@@ -36,21 +36,19 @@ def sendMessage(token, chat_id, text):
     requests.post(url, data={"chat_id": chat_id, "text": text})
 
 
-servers_working = []
-servers_not_working = []
-hosts = [{"name": "electrumx-ch-1.feathercoin.ch", "port": 50001},
-         {"name": "electrumx-de-2.feathercoin.ch", "port": 50001},
-         {"name": "electrumxftc.trezarcoin.com", "port": 50001},
-         {"name": "electrum.feathercoin.network", "port": 50001},
-         {"name": "electrumx-gb-1.feathercoin.network", "port": 50001},
-         {"name": "electrumx-gb-2.feathercoin.network", "port": 50001}]
+hosts_list = args.hosts.split(",")
+hosts_dict = {}
+for i in hosts_list:
+    x = i.split(":")
+    x[1] = int(x[1])
+    hosts_dict.update(dict([x]))
 
-# Running the code
+print (hosts_dict)
 
-for host in hosts:
-    success = ping_server(host["name"], host["port"])
+for key, value in hosts_dict.items():
+    success = ping_server(key, value)
     if success:
-        logging.debug("This server is up and running " + host["name"])
+        logging.debug("This server is up and running " + key)
     else:
-        message = "The following server(s) isn't/aren't responding properly. Please check this: " + host["name"]
+        message = "The following server(s) isn't/aren't responding properly. Please check this: " + key
         sendMessage(args.token, args.chat_id, message)
