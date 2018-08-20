@@ -3,6 +3,7 @@ import socket
 import json
 import requests
 import argparse
+import logging
 
 
 parser = argparse.ArgumentParser()
@@ -48,8 +49,7 @@ hosts = ["electrumx-ch-1.feathercoin.ch", "electrumx-de-2.feathercoin.ch",
 for host in hosts:
     success = ping_server(host, 50001)
     if success is True:
-        message = "This Server is up and running: " + host
+        logging.debug("This server is up and running " + host)
     else:
         message = "The following server(s) isn't/aren't responding properly. Please check this: " + host
-
-    sendMessage(args.token, args.chat_id, message)
+        sendMessage(args.token, args.chat_id, message)
