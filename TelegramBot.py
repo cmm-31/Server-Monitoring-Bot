@@ -21,15 +21,13 @@ def ping_server(HOST, PORT):
         sock.sendall(b'{"id": 2, "method": "server.version"}\n')
         received = sock.recv(1024)
     except Exception as e:
+        logging.warning(e)
         return False
 
     finally:
         sock.close()
-        version_dict = json.loads(received)
-        if version_dict["result"][0].startswith("ElectrumX"):
-            return True
-        else:
-            return False
+    version_dict = json.loads(received)
+    return version_dict["result"][0].startswith("ElectrumX")
 
 
 def sendMessage(token, chat_id, text):
@@ -40,16 +38,19 @@ def sendMessage(token, chat_id, text):
 
 servers_working = []
 servers_not_working = []
-hosts = ["electrumx-ch-1.feathercoin.ch", "electrumx-de-2.feathercoin.ch",
-        "electrumxftc.trezarcoin.com", "electrum.feathercoin.network",
-        "electrumx-gb-1.feathercoin.network", "electrumx-gb-2.feathercoin.network"]
+hosts = [{"name": "electrumx-ch-1.feathercoin.ch", "port": 50001},
+         {"name": "electrumx-de-2.feathercoin.ch", "port": 50001},
+         {"name": "electrumxftc.trezarcoin.com", "port": 50001},
+         {"name": "electrum.feathercoin.network", "port": 50001},
+         {"name": "electrumx-gb-1.feathercoin.network", "port": 50001},
+         {"name": "electrumx-gb-2.feathercoin.network", "port": 50001}]
 
 # Running the code
 
 for host in hosts:
-    success = ping_server(host, 50001)
-    if success is True:
-        logging.debug("This server is up and running " + host)
+    success = ping_server(host["name"], host["port"])
+    if success:
+        logging.debug("This server is up and running " + host["name"])
     else:
-        message = "The following server(s) isn't/aren't responding properly. Please check this: " + host
+        message = "The following server(s) isn't/aren't responding properly. Please check this: " + host["name"]
         sendMessage(args.token, args.chat_id, message)
