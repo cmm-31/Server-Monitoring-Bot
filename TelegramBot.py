@@ -37,18 +37,22 @@ def sendMessage(token, chat_id, text):
 
 
 hosts_list = args.hosts.split(",")
-hosts_dict = {}
+hosts = []
+
 for i in hosts_list:
     x = i.split(":")
     x[1] = int(x[1])
-    hosts_dict.update(dict([x]))
+    tempo_dict = {}
+    tempo_dict["name"] = x[0]
+    tempo_dict["port"] = x[1]
+    hosts.append(tempo_dict)
 
-print (hosts_dict)
+print(hosts)
 
-for key, value in hosts_dict.items():
-    success = ping_server(key, value)
+for host in hosts:
+    success = ping_server(host["name"], host["port"])
     if success:
-        logging.debug("This server is up and running " + key)
+        logging.debug("This server is up and running " + host["name"])
     else:
-        message = "The following server(s) isn't/aren't responding properly. Please check this: " + key
+        message = "The following server(s) isn't/aren't responding properly. Please check this: " + host["name"]
         sendMessage(args.token, args.chat_id, message)
