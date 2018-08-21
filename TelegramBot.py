@@ -54,7 +54,8 @@ while True:
         success = ping_server(host["name"], host["port"])
         if success:
             logging.debug("This server is up and running " + host["name"])
-        else:
+        elif host["state"] == "running":
             message = "The following server isn't responding properly. Please check it: " + host["name"]
             sendMessage(args.token, args.chat_id, message)
+            host["state"] = "failed"
     time.sleep(10)
