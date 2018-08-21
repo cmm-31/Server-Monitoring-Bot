@@ -4,6 +4,7 @@ import json
 import argparse
 import logging
 import requests
+import time
 
 parser = argparse.ArgumentParser()
 parser.add_argument("-t", "--token", dest="token", help="set bot token")
@@ -47,12 +48,13 @@ for i in hosts_list:
     tempo_dict["port"] = x[1]
     hosts.append(tempo_dict)
 
-print(hosts)
 
 for host in hosts:
     success = ping_server(host["name"], host["port"])
     if success:
         logging.debug("This server is up and running " + host["name"])
     else:
-        message = "The following server(s) isn't/aren't responding properly. Please check this: " + host["name"]
+        message = "The following server isn't responding properly. Please check it: " + host["name"]
         sendMessage(args.token, args.chat_id, message)
+
+time.sleep(10)
