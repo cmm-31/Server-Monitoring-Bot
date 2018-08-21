@@ -46,15 +46,15 @@ for i in hosts_list:
     tempo_dict = {}
     tempo_dict["name"] = x[0]
     tempo_dict["port"] = x[1]
+    tempo_dict["state"] = "running"
     hosts.append(tempo_dict)
 
-
-for host in hosts:
-    success = ping_server(host["name"], host["port"])
-    if success:
-        logging.debug("This server is up and running " + host["name"])
-    else:
-        message = "The following server isn't responding properly. Please check it: " + host["name"]
-        sendMessage(args.token, args.chat_id, message)
-
-time.sleep(10)
+while True:
+    for host in hosts:
+        success = ping_server(host["name"], host["port"])
+        if success:
+            logging.debug("This server is up and running " + host["name"])
+        else:
+            message = "The following server isn't responding properly. Please check it: " + host["name"]
+            sendMessage(args.token, args.chat_id, message)
+    time.sleep(10)
