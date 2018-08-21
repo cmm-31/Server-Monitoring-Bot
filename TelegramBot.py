@@ -60,8 +60,8 @@ while True:
             sendMessage(args.token, args.chat_id, message)
             host["state"] = "failed"
 
-        host["recheck_at"] = datetime.datetime.now() + datetime.timedelta(seconds=30)
+            host["recheck_at"] = datetime.datetime.now() + datetime.timedelta(seconds=30)
 
-        if host["recheck_at"] > datetime.datetime.now():
+        if host["state"] == "failed" and host["recheck_at"] > datetime.datetime.now():
             host["state"] = "running"
     time.sleep(10)
