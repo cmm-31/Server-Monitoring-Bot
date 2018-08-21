@@ -11,6 +11,7 @@ parser = argparse.ArgumentParser()
 parser.add_argument("-t", "--token", dest="token", help="set bot token")
 parser.add_argument("-id", "--chat_id", dest="chat_id", help="set the chat_id")
 parser.add_argument("-ho", "--hosts", dest="hosts", help="set the hosts")
+parser.add_argument("-chec", "--recheck_duration", dest="recheck_duration_str", help="set the time until recheck")
 args = parser.parse_args()
 
 
@@ -50,6 +51,16 @@ for i in hosts_list:
     tempo_dict["state"] = "running"
     hosts.append(tempo_dict)
 
+
+recheck_duration_list = args.recheck_duration_str.split(",")
+recheck_duration = {}
+
+for i in recheck_duration_list:
+    x = i.split(":")
+    x[1] = int(x[1])
+    tempo_recheck_dict = dict([x])
+    recheck_duration.update(tempo_recheck_dict)
+
 while True:
     for host in hosts:
         success = ping_server(host["name"], host["port"])
@@ -60,7 +71,7 @@ while True:
             sendMessage(args.token, args.chat_id, message)
             host["state"] = "failed"
 
-            host["recheck_at"] = datetime.datetime.now() + datetime.timedelta(seconds=30)
+            host["recheck_at"] = datetime.datetime.now() + datetime.timedelta(**recheck_duration)
 
         if host["state"] == "failed" and host["recheck_at"] < datetime.datetime.now():
             host["state"] = "running"
