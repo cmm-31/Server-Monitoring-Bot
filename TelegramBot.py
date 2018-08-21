@@ -3,8 +3,9 @@ import socket
 import json
 import argparse
 import logging
-import requests
 import time
+import datetime
+import requests
 
 parser = argparse.ArgumentParser()
 parser.add_argument("-t", "--token", dest="token", help="set bot token")
@@ -58,4 +59,9 @@ while True:
             message = "The following server isn't responding properly. Please check it: " + host["name"]
             sendMessage(args.token, args.chat_id, message)
             host["state"] = "failed"
+
+        host["recheck_at"] = datetime.datetime.now() + datetime.timedelta(seconds=30)
+
+        if host["recheck_at"] > datetime.datetime.now():
+            host["state"] = "running"
     time.sleep(10)
