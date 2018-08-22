@@ -44,6 +44,7 @@ parser.add_argument("-id", "--chat_id", dest="chat_id", help="set the chat_id")
 parser.add_argument("-ho", "--hosts", dest="hosts", help="set the hosts")
 parser.add_argument("-chec", "--recheck_duration", dest="recheck_duration", default="days:1", help="set the time until recheck")
 parser.add_argument("-de", "--debug", dest="debug", default=False, type=bool, help="enable logging.debug if wanted")
+parser.add_argument("-c", "--counter", dest="counter", default=5, type=int, help="set the check times, until the msg will be sent ")
 args = parser.parse_args()
 
 if args.debug == True:
@@ -68,7 +69,7 @@ while True:
         elif host["state"] == "running":
             host["counter"] += 1
             logging.debug("Ping was not successful for " + host["name"])
-            if host["counter"] == 5:
+            if host["counter"] == args.counter:
                 gotofailed(host)
 
         if host["state"] == "failed" and host["recheck_at"] < datetime.datetime.now():
