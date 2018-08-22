@@ -40,9 +40,10 @@ def sendMessage(token, chat_id, text):
 
 
 hosts = []
+counter = 0
 for host in args.hosts.split(","):
     name, port = host.split(":")
-    hosts.append({"name":name, "port":int(port), "state":"running"})
+    hosts.append({"name":name, "port":int(port), "state":"running", "counter":counter})
 
 
 recheck_duration = {}
@@ -56,11 +57,14 @@ while True:
         if success:
             logging.debug("This server is up and running " + host["name"])
         elif host["state"] == "running":
-            message = "The following server isn't responding properly. Please check it: " + host["name"]
-            sendMessage(args.token, args.chat_id, message)
-            host["state"] = "failed"
-
-            host["recheck_at"] = datetime.datetime.now() + datetime.timedelta(**recheck_duration)
+            counter += 1
+            if counter == 5:
+                message = "The following server isn't responding properly. Please check it: " + host["name"]
+                sendMessage(args.token, args.chat_id, message)
+                counter = 0
+            else:
+                host["state"] = "failed"
+                host["recheck_at"] = datetime.datetime.now() + datetime.timedelta(**recheck_duration)
 
         if host["state"] == "failed" and host["recheck_at"] < datetime.datetime.now():
             host["state"] = "running"
