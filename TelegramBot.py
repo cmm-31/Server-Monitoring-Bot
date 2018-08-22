@@ -33,10 +33,19 @@ def sendMessage(token, chat_id, text):
     requests.post(url, data={"chat_id": chat_id, "text": text})
 
 def gotofailed(host):
-    message = "The following server isn't responding properly. Please check it: " + host["name"]
+    message = "The following server isn't responding properly. Please check it: " + host.name
     sendMessage(args.token, args.chat_id, message)
-    host["state"] = State.failed
-    host["recheck_at"] = datetime.datetime.now() + datetime.timedelta(**recheck_duration)
+    host.state = State.failed
+    host.recheck_at = datetime.datetime.now() + datetime.timedelta(**recheck_duration)
+
+
+class Host():
+    def __init__(self, name, port):
+        self.name = name
+        self.port = int(port)
+        self.state = State.running
+        self.counter = 0
+        self.recheck_at = datetime.datetime.now()
 
 class AutoNumber(Enum):
     def __new__(cls):
@@ -64,7 +73,7 @@ if args.debug == True:
 hosts = []
 for host in args.hosts.split(","):
     name, port = host.split(":")
-    hosts.append({"name":name, "port":int(port), "state":State.running, "counter":0})
+    hosts.append(Host(name, port))
 
 
 recheck_duration = {}
@@ -74,17 +83,17 @@ for duration in args.recheck_duration.split(","):
 
 while True:
     for host in hosts:
-        success = ping_server(host["name"], host["port"])
+        success = ping_server(host.name, host.port)
         if success:
-            logging.debug("This server is up and running " + host["name"])
-        elif host["state"] == State.running:
-            host["counter"] += 1
-            logging.debug("Ping was not successful for " + host["name"])
-            if host["counter"] == args.counter:
+            logging.debug("This server is up and running " + host.name)
+        elif host.state == State.running:
+            host.counter += 1
+            logging.debug("Ping was not successful for " + host.name)
+            if host.counter == args.counter:
                 gotofailed(host)
 
-        if host["state"] == State.failed and host["recheck_at"] < datetime.datetime.now():
-            logging.debug("Logging state is turned on running again for " + host["name"])
-            host["state"] = State.running
-            host["counter"] = 0
+        if host.state == State.failed and host.recheck_at < datetime.datetime.now():
+            logging.debug("Logging state is turned on running again for " + host.name)
+            host.state = State.running
+            host.counter = 0
     time.sleep(10)
