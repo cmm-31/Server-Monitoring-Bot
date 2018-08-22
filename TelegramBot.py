@@ -8,14 +8,6 @@ import datetime
 import requests
 
 
-parser = argparse.ArgumentParser()
-parser.add_argument("-t", "--token", dest="token", help="set bot token")
-parser.add_argument("-id", "--chat_id", dest="chat_id", help="set the chat_id")
-parser.add_argument("-ho", "--hosts", dest="hosts", help="set the hosts")
-parser.add_argument("-chec", "--recheck_duration", dest="recheck_duration", default="days:1", help="set the time until recheck")
-args = parser.parse_args()
-
-
 def ping_server(HOST, PORT):
     # Create a socket (SOCK_STREAM means a TCP socket)
     sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -46,6 +38,17 @@ def gotofailed(host):
     host["recheck_at"] = datetime.datetime.now() + datetime.timedelta(**recheck_duration)
 
 
+parser = argparse.ArgumentParser()
+parser.add_argument("-t", "--token", dest="token", help="set bot token")
+parser.add_argument("-id", "--chat_id", dest="chat_id", help="set the chat_id")
+parser.add_argument("-ho", "--hosts", dest="hosts", help="set the hosts")
+parser.add_argument("-chec", "--recheck_duration", dest="recheck_duration", default="days:1", help="set the time until recheck")
+parser.add_argument("-de", "--debug", dest="debug", default=False, type=bool, help="enable logging.debug if wanted")
+args = parser.parse_args()
+
+if args.debug == True:
+    logging.basicConfig(level=logging.DEBUG)
+
 hosts = []
 for host in args.hosts.split(","):
     name, port = host.split(":")
@@ -61,8 +64,7 @@ while True:
     for host in hosts:
         success = ping_server(host["name"], host["port"])
         if success:
-            pass
-            #logging.debug("This server is up and running " + host["name"])
+            logging.debug("This server is up and running " + host["name"])
         elif host["state"] == "running":
             host["counter"] += 1
             logging.debug("Ping was not successful for " + host["name"])
