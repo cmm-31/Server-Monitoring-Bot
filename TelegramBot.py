@@ -11,7 +11,7 @@ parser = argparse.ArgumentParser()
 parser.add_argument("-t", "--token", dest="token", help="set bot token")
 parser.add_argument("-id", "--chat_id", dest="chat_id", help="set the chat_id")
 parser.add_argument("-ho", "--hosts", dest="hosts", help="set the hosts")
-parser.add_argument("-chec", "--recheck_duration", dest="recheck_duration_str", help="set the time until recheck")
+parser.add_argument("-chec", "--recheck_duration", dest="recheck_duration", help="set the time until recheck")
 args = parser.parse_args()
 
 
@@ -39,27 +39,16 @@ def sendMessage(token, chat_id, text):
     requests.post(url, data={"chat_id": chat_id, "text": text})
 
 
-hosts_list = args.hosts.split(",")
 hosts = []
-
-for i in hosts_list:
-    x = i.split(":")
-    x[1] = int(x[1])
-    tempo_dict = {}
-    tempo_dict["name"] = x[0]
-    tempo_dict["port"] = x[1]
-    tempo_dict["state"] = "running"
-    hosts.append(tempo_dict)
+for host in args.hosts.split(","):
+    name, port = host.split(":")
+    hosts.append({"name":name, "port":int(port), "state":"running"})
 
 
-recheck_duration_list = args.recheck_duration_str.split(",")
 recheck_duration = {}
-
-for i in recheck_duration_list:
-    x = i.split(":")
-    x[1] = int(x[1])
-    tempo_recheck_dict = dict([x])
-    recheck_duration.update(tempo_recheck_dict)
+for duration in args.recheck_duration.split(","):
+    unit, amount = duration.split(":")
+    recheck_duration[unit] = int(amount)
 
 while True:
     for host in hosts:

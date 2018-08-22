@@ -1,0 +1,19 @@
+[[source]]
+url = "https://pypi.org/simple"
+verify_ssl = true
+name = "pypi"
+
+[packages]
+pyinstaller = "*"
+pytest = "*"
+requests = "*"
+"flake8" = "*"
+datetime = "*"
+argparse = "*"
+"pyqt5" = "*"
+pysocks = "*"
+
+[dev-packages]
+
+[requires]
+python_version = "3.7"
