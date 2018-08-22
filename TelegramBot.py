@@ -7,6 +7,7 @@ import time
 import datetime
 import requests
 
+
 parser = argparse.ArgumentParser()
 parser.add_argument("-t", "--token", dest="token", help="set bot token")
 parser.add_argument("-id", "--chat_id", dest="chat_id", help="set the chat_id")
@@ -38,12 +39,17 @@ def sendMessage(token, chat_id, text):
 
     requests.post(url, data={"chat_id": chat_id, "text": text})
 
+def gotofailed(host):
+    message = "The following server isn't responding properly. Please check it: " + host["name"]
+    sendMessage(args.token, args.chat_id, message)
+    host["state"] = "failed"
+    host["recheck_at"] = datetime.datetime.now() + datetime.timedelta(**recheck_duration)
+
 
 hosts = []
-counter = 0
 for host in args.hosts.split(","):
     name, port = host.split(":")
-    hosts.append({"name":name, "port":int(port), "state":"running", "counter":counter})
+    hosts.append({"name":name, "port":int(port), "state":"running", "counter":0})
 
 
 recheck_duration = {}
@@ -55,17 +61,16 @@ while True:
     for host in hosts:
         success = ping_server(host["name"], host["port"])
         if success:
-            logging.debug("This server is up and running " + host["name"])
+            pass
+            #logging.debug("This server is up and running " + host["name"])
         elif host["state"] == "running":
-            counter += 1
-            if counter == 5:
-                message = "The following server isn't responding properly. Please check it: " + host["name"]
-                sendMessage(args.token, args.chat_id, message)
-                counter = 0
-            else:
-                host["state"] = "failed"
-                host["recheck_at"] = datetime.datetime.now() + datetime.timedelta(**recheck_duration)
+            host["counter"] += 1
+            logging.debug("Ping was not successful for " + host["name"])
+            if host["counter"] == 5:
+                gotofailed(host)
 
         if host["state"] == "failed" and host["recheck_at"] < datetime.datetime.now():
+            logging.debug("Logging state is turned on running again for " + host["name"])
             host["state"] = "running"
+            host["counter"] = 0
     time.sleep(10)
