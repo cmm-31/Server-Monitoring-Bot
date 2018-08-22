@@ -11,7 +11,7 @@ parser = argparse.ArgumentParser()
 parser.add_argument("-t", "--token", dest="token", help="set bot token")
 parser.add_argument("-id", "--chat_id", dest="chat_id", help="set the chat_id")
 parser.add_argument("-ho", "--hosts", dest="hosts", help="set the hosts")
-parser.add_argument("-chec", "--recheck_duration", dest="recheck_duration", default="days:1" help="set the time until recheck")
+parser.add_argument("-chec", "--recheck_duration", dest="recheck_duration", default="days:1", help="set the time until recheck")
 args = parser.parse_args()
 
 
