@@ -57,6 +57,30 @@ class Host():
         self.counter = 0
 
 
+    def ifsuccess(self):
+        logging.debug("Ping was successful for " + self.name)
+
+
+    def isrunning(self):
+        return self.state == State.running
+
+
+    def isfailed(self):
+        return self.state == State.failed
+
+
+    def isready(self):
+        return self.recheck_at < datetime.datetime.now()
+
+
+    def isreached(self):
+        return self.counter == args.counter
+
+
+    def isnotsuccessful(self):
+        self.counter += 1
+        logging.debug("Ping was not successful for " + self.name)
+
 class AutoNumber(Enum):
     def __new__(cls):
         value = len(cls.__members__) + 1
@@ -99,13 +123,12 @@ while True:
     for host in hosts:
         success = host.ping_server()
         if success:
-            logging.debug("Ping was successful for " + host.name)
-        elif host.state == State.running:
-            host.counter += 1
-            logging.debug("Ping was not successful for " + host.name)
-            if host.counter == args.counter:
+            host.ifsuccess()
+        elif host.isrunning():
+            host.isnotsuccessful()
+            if host.isreached():
                 host.gotofailed()
 
-        if host.state == State.failed and host.recheck_at < datetime.datetime.now():
+        if host.isreached() and host.isready():
             host.gotorunning()
     time.sleep(10)
