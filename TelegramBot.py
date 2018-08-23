@@ -32,12 +32,6 @@ def sendMessage(token, chat_id, text):
 
     requests.post(url, data={"chat_id": chat_id, "text": text})
 
-def gotofailed(host):
-    message = "The following server isn't responding properly. Please check it: " + host.name
-    sendMessage(args.token, args.chat_id, message)
-    host.state = State.failed
-    host.recheck_at = datetime.datetime.now() + datetime.timedelta(**recheck_duration)
-
 
 class Host():
     def __init__(self, name, port):
@@ -46,6 +40,12 @@ class Host():
         self.state = State.running
         self.counter = 0
         self.recheck_at = datetime.datetime.now()
+
+    def gotofailed(self):
+        message = "The following server isn't responding properly. Please check it: " + self.name
+        sendMessage(args.token, args.chat_id, message)
+        self.state = State.failed
+        self.recheck_at = datetime.datetime.now() + datetime.timedelta(**recheck_duration)
 
 class AutoNumber(Enum):
     def __new__(cls):
@@ -94,7 +94,7 @@ while True:
             host.counter += 1
             logging.debug("Ping was not successful for " + host.name)
             if host.counter == args.counter:
-                gotofailed(host)
+                host.gotofailed()
 
         if host.state == State.failed and host.recheck_at < datetime.datetime.now():
             logging.debug("Logging state is turned on running again for " + host.name)
