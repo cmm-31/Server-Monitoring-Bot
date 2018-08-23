@@ -9,23 +9,6 @@ import requests
 from enum import Enum
 
 
-def ping_server(HOST, PORT):
-    # Create a socket (SOCK_STREAM means a TCP socket)
-    sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-
-    try:
-        sock.connect((HOST, PORT))
-        sock.sendall(b'{"id": 2, "method": "server.version"}\n')
-        received = sock.recv(1024)
-    except Exception as e:
-        logging.warning(e)
-        return False
-
-    finally:
-        sock.close()
-    version_dict = json.loads(received)
-    return version_dict["result"][0].startswith("ElectrumX")
-
 
 def sendMessage(token, chat_id, text):
     url = "https://api.telegram.org/bot{}/sendMessage".format(token)
@@ -41,11 +24,32 @@ class Host():
         self.counter = 0
         self.recheck_at = datetime.datetime.now()
 
+
     def gotofailed(self):
         message = "The following server isn't responding properly. Please check it: " + self.name
         sendMessage(args.token, args.chat_id, message)
         self.state = State.failed
         self.recheck_at = datetime.datetime.now() + datetime.timedelta(**recheck_duration)
+
+
+    def ping_server(self):
+        # Create a socket (SOCK_STREAM means a TCP socket)
+        sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+
+        try:
+            sock.connect((self.name, self.port))
+            sock.sendall(b'{"id": 2, "method": "server.version"}\n')
+            received = sock.recv(1024)
+
+        except Exception as e:
+            logging.warning(e)
+            return False
+
+        finally:
+            sock.close()
+        version_dict = json.loads(received)
+        return version_dict["result"][0].startswith("ElectrumX")
+
 
 class AutoNumber(Enum):
     def __new__(cls):
@@ -87,7 +91,7 @@ for duration in args.recheck_duration.split(","):
 
 while True:
     for host in hosts:
-        success = ping_server(host.name, host.port)
+        success = host.ping_server()
         if success:
             logging.debug("Ping was successful for " + host.name)
         elif host.state == State.running:
