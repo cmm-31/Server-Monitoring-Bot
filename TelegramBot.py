@@ -25,7 +25,7 @@ class Host():
         self.recheck_at = datetime.datetime.now()
 
 
-    def gotofailed(self):
+    def gotostatefailed(self):
         message = "The following server isn't responding properly. Please check it: " + self.name
         sendMessage(args.token, args.chat_id, message)
         self.state = State.failed
@@ -57,11 +57,11 @@ class Host():
         self.counter = 0
 
 
-    def ifsuccess(self):
+    def logsuccess(self):
         logging.debug("Ping was successful for " + self.name)
 
 
-    def isrunning(self):
+    def stateisrunning(self):
         return self.state == State.running
 
 
@@ -73,7 +73,7 @@ class Host():
         return self.recheck_at < datetime.datetime.now()
 
 
-    def isreached(self):
+    def maxfailsreached(self):
         return self.counter == args.counter
 
 
@@ -123,11 +123,11 @@ while True:
     for host in hosts:
         success = host.ping_server()
         if success:
-            host.ifsuccess()
-        elif host.isrunning():
+            host.logsuccess()
+        elif host.stateisrunning():
             host.isnotsuccessful()
-            if host.isreached():
-                host.gotofailed()
+            if host.maxfailsreached():
+                host.gotostatefailed()
 
         if host.isreached() and host.isready():
             host.gotorunning()
