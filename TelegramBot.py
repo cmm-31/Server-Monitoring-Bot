@@ -51,6 +51,12 @@ class Host():
         return version_dict["result"][0].startswith("ElectrumX")
 
 
+    def gotorunning(self):
+        logging.debug("Logging state is turned on running again for " + self.name)
+        self.state = State.running
+        self.counter = 0
+
+
 class AutoNumber(Enum):
     def __new__(cls):
         value = len(cls.__members__) + 1
@@ -101,7 +107,5 @@ while True:
                 host.gotofailed()
 
         if host.state == State.failed and host.recheck_at < datetime.datetime.now():
-            logging.debug("Logging state is turned on running again for " + host.name)
-            host.state = State.running
-            host.counter = 0
+            host.gotorunning()
     time.sleep(10)
