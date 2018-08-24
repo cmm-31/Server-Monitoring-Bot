@@ -12,6 +12,7 @@ datetime = "*"
 argparse = "*"
 "pyqt5" = "*"
 pysocks = "*"
+pylint = "*"
 
 [dev-packages]
 
