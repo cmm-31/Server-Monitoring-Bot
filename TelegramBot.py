@@ -25,7 +25,7 @@ class Host():
         self.recheck_at = datetime.datetime.now()
 
 
-    def gotostatefailed(self):
+    def goto_state_failed(self):
         message = "The following server isn't responding properly. Please check it: " + self.name
         sendMessage(args.token, args.chat_id, message)
         self.state = State.failed
@@ -51,33 +51,29 @@ class Host():
         return version_dict["result"][0].startswith("ElectrumX")
 
 
-    def gotorunning(self):
+    def goto_state_running(self):
         logging.debug("Logging state is turned on running again for " + self.name)
         self.state = State.running
         self.counter = 0
 
 
-    def logsuccess(self):
+    def log_successful_ping(self):
         logging.debug("Ping was successful for " + self.name)
 
 
-    def stateisrunning(self):
+    def state_is_running(self):
         return self.state == State.running
 
 
-    def isfailed(self):
-        return self.state == State.failed
-
-
-    def isready(self):
+    def rechecktime_expired(self):
         return self.recheck_at < datetime.datetime.now()
 
 
-    def maxfailsreached(self):
+    def max_fails_reached(self):
         return self.counter == args.counter
 
 
-    def isnotsuccessful(self):
+    def is_not_successful(self):
         self.counter += 1
         logging.debug("Ping was not successful for " + self.name)
 
@@ -123,12 +119,12 @@ while True:
     for host in hosts:
         success = host.ping_server()
         if success:
-            host.logsuccess()
-        elif host.stateisrunning():
-            host.isnotsuccessful()
-            if host.maxfailsreached():
-                host.gotostatefailed()
+            host.log_successful_ping()
+        elif host.state_is_running():
+            host.is_not_successful()
+            if host.max_fails_reached():
+                host.goto_state_failed()
 
-        if host.isreached() and host.isready():
-            host.gotorunning()
+        if host.max_fails_reached() and host.rechecktime_expired():
+            host.goto_state_running()
     time.sleep(10)
