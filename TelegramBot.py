@@ -29,14 +29,14 @@ class Host():
         self.recheck_duration_para = recheck_duration_para
 
 
-    def goto_state_failed(self, name, state, recheck_at, token, chat_id, recheck_duration):
+    def goto_state_failed(self):
         message = "The following server isn't responding properly. Please check it: " + self.name
         sendMessage(self.token, self.chat_id, message)
         self.state = State.failed
         self.recheck_at = datetime.datetime.now() + datetime.timedelta(**self.recheck_duration_para)
 
 
-    def ping_server(self, name, port):
+    def ping_server(self):
         # Create a socket (SOCK_STREAM means a TCP socket)
         sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 
@@ -55,29 +55,29 @@ class Host():
         return version_dict["result"][0].startswith("ElectrumX")
 
 
-    def goto_state_running(self, name, state, counter):
+    def goto_state_running(self):
         logging.debug("Logging state is turned on running again for " + self.name)
         self.state = State.running
         self.counter = 0
 
 
-    def log_successful_ping(self, name):
+    def log_successful_ping(self):
         logging.debug("Ping was successful for " + self.name)
 
 
-    def is_state_running(self, state):
+    def is_state_running(self):
         return self.state == State.running
 
 
-    def reached_rechecktime(self, recheck_at):
+    def reached_rechecktime(self):
         return self.recheck_at < datetime.datetime.now()
 
 
-    def reached_max_fails(self, counter, counter_limit):
-        return self.counter == counter_limit
+    def reached_max_fails(self):
+        return self.counter == self.counter_limit
 
 
-    def count_failed_ping(self, counter, name):
+    def count_failed_ping(self):
         self.counter += 1
         logging.debug("Ping was not successful for " + self.name)
 
@@ -109,8 +109,7 @@ def main():
     counter_limit = args.counter
     token = args.token
     chat_id = args.chat_id
-    recheck_duration_para = recheck_duration
-
+    #recheck_duration_para = recheck_duration
 
     if args.debug and args.logfile:
         logging.basicConfig(filename="Logfile_debug", level=logging.DEBUG)
@@ -122,6 +121,8 @@ def main():
         unit, amount = duration.split(":")
         recheck_duration[unit] = int(amount)
 
+    recheck_duration_para = recheck_duration
+
 
     hosts = []
     for host in args.hosts.split(","):
@@ -131,16 +132,16 @@ def main():
 
     while True:
         for host in hosts:
-            success = host.ping_server(host.name, host.port)
+            success = host.ping_server()
             if success:
-                host.log_successful_ping(host.name)
-            elif host.is_state_running(host.state):
-                host.count_failed_ping(host.counter, host.name)
-                if host.reached_max_fails(host.counter, host.counter_limit):
-                    host.goto_state_failed(host.name, host.state, host.recheck_at, host.token, host.chat_id, host.recheck_duration_para)
+                host.log_successful_ping()
+            elif host.is_state_running():
+                host.count_failed_ping()
+                if host.reached_max_fails():
+                    host.goto_state_failed()
 
-            if host.reached_max_fails(host.counter, host.counter_limit) and host.reached_rechecktime(host.recheck_at):
-                host.goto_state_running(host.name, host.state, host.counter)
+            if host.reached_max_fails() and host.reached_rechecktime():
+                host.goto_state_running()
         time.sleep(10)
 
 
