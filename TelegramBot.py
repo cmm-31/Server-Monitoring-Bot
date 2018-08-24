@@ -61,21 +61,22 @@ class Host():
         logging.debug("Ping was successful for " + self.name)
 
 
-    def state_is_running(self):
+    def is_state_running(self):
         return self.state == State.running
 
 
-    def rechecktime_expired(self):
+    def reached_rechecktime(self):
         return self.recheck_at < datetime.datetime.now()
 
 
-    def max_fails_reached(self):
+    def reached_max_fails(self):
         return self.counter == args.counter
 
 
-    def is_not_successful(self):
+    def count_failed_ping(self):
         self.counter += 1
         logging.debug("Ping was not successful for " + self.name)
+
 
 class AutoNumber(Enum):
     def __new__(cls):
@@ -120,11 +121,11 @@ while True:
         success = host.ping_server()
         if success:
             host.log_successful_ping()
-        elif host.state_is_running():
-            host.is_not_successful()
-            if host.max_fails_reached():
+        elif host.is_state_running():
+            host.count_failed_ping()
+            if host.reached_max_fails():
                 host.goto_state_failed()
 
-        if host.max_fails_reached() and host.rechecktime_expired():
+        if host.reached_max_fails() and host.reached_rechecktime():
             host.goto_state_running()
     time.sleep(10)
