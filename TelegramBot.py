@@ -17,7 +17,7 @@ def sendMessage(token, chat_id, text):
 
 
 class Host():
-    def __init__(self, name, port, counter_limit, token, chat_id, recheck_duration_para):
+    def __init__(self, owner, name, port, counter_limit, token, chat_id, recheck_duration_para):
         self.name = name
         self.port = int(port)
         self.state = State.running
@@ -27,10 +27,11 @@ class Host():
         self.token = token
         self.chat_id = chat_id
         self.recheck_duration_para = recheck_duration_para
+        self.owner = owner
 
 
     def goto_state_failed(self):
-        message = "The following server isn't responding properly. Please check it: " + self.name
+        message = "{} Your server isn't responding properly. Please check it: {}".format(self.owner, self.name)
         sendMessage(self.token, self.chat_id, message)
         self.state = State.failed
         self.recheck_at = datetime.datetime.now() + datetime.timedelta(**self.recheck_duration_para)
@@ -56,13 +57,13 @@ class Host():
 
 
     def goto_state_running(self):
-        logging.debug("Logging state is turned on running again for " + self.name)
+        logging.debug("Logging state is turned on running again for %s", self.name)
         self.state = State.running
         self.counter = 0
 
 
     def log_successful_ping(self):
-        logging.debug("Ping was successful for " + self.name)
+        logging.debug("Ping was successful for %s", self.name)
 
 
     def is_state_running(self):
@@ -79,7 +80,7 @@ class Host():
 
     def count_failed_ping(self):
         self.counter += 1
-        logging.debug("Ping was not successful for " + self.name)
+        logging.debug("Ping was not successful for %s", self.name)
 
 
 class AutoNumber(Enum):
@@ -109,7 +110,6 @@ def main():
     counter_limit = args.counter
     token = args.token
     chat_id = args.chat_id
-    #recheck_duration_para = recheck_duration
 
     if args.debug and args.logfile:
         logging.basicConfig(filename="Logfile_debug", level=logging.DEBUG)
@@ -126,8 +126,8 @@ def main():
 
     hosts = []
     for host in args.hosts.split(","):
-        name, port = host.split(":")
-        hosts.append(Host(name, port, counter_limit, token, chat_id, recheck_duration_para))
+        owner, name, port = host.split(":")
+        hosts.append(Host(owner, name, port, counter_limit, token, chat_id, recheck_duration_para))
 
 
     while True:
