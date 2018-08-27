@@ -4,17 +4,11 @@ verify_ssl = true
 name = "pypi"
 
 [packages]
-pyinstaller = "*"
-pytest = "*"
 requests = "*"
-"flake8" = "*"
-datetime = "*"
-argparse = "*"
-"pyqt5" = "*"
-pysocks = "*"
-pylint = "*"
 
 [dev-packages]
+"flake8" = "*"
+pylint = "*"
 
 [requires]
 python_version = "3.7"
