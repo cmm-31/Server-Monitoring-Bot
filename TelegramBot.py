@@ -9,7 +9,6 @@ import requests
 from enum import Enum
 
 
-
 def sendMessage(token, chat_id, text):
     url = "https://api.telegram.org/bot{}/sendMessage".format(token)
 
@@ -29,13 +28,11 @@ class Host():
         self.recheck_duration_para = recheck_duration_para
         self.owner = owner
 
-
     def goto_state_failed(self):
         message = "{} Your server isn't responding properly. Please check it: {}".format(self.owner, self.name)
         sendMessage(self.token, self.chat_id, message)
         self.state = State.failed
         self.recheck_at = datetime.datetime.now() + datetime.timedelta(**self.recheck_duration_para)
-
 
     def ping_server(self):
         # Create a socket (SOCK_STREAM means a TCP socket)
@@ -55,28 +52,22 @@ class Host():
         version_dict = json.loads(received)
         return version_dict["result"][0].startswith("ElectrumX")
 
-
     def goto_state_running(self):
         logging.debug("Logging state is turned on running again for %s", self.name)
         self.state = State.running
         self.counter = 0
 
-
     def log_successful_ping(self):
         logging.debug("Ping was successful for %s", self.name)
-
 
     def is_state_running(self):
         return self.state == State.running
 
-
     def reached_rechecktime(self):
         return self.recheck_at < datetime.datetime.now()
 
-
     def reached_max_fails(self):
         return self.counter == self.counter_limit
-
 
     def count_failed_ping(self):
         self.counter += 1
@@ -123,12 +114,10 @@ def main():
 
     recheck_duration_para = recheck_duration
 
-
     hosts = []
     for host in args.hosts.split(","):
         owner, name, port = host.split(":")
         hosts.append(Host(owner, name, port, counter_limit, token, chat_id, recheck_duration_para))
-
 
     while True:
         for host in hosts:
