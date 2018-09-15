@@ -1,12 +1,13 @@
 # Server Monitoring Bot
-import socket
-import json
 import argparse
-import logging
-import time
+import json
 import datetime
-import requests
+import logging
+import socket
+import time
 from enum import Enum
+
+import requests
 
 
 def sendMessage(token, chat_id, text):
