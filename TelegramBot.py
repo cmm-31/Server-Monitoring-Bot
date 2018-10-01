@@ -10,7 +10,7 @@ from enum import Enum
 import requests
 
 
-def sendMessage(token, chat_id, text):
+def send_message(token, chat_id, text):
     url = "https://api.telegram.org/bot{}/sendMessage".format(token)
 
     requests.post(url, data={"chat_id": chat_id, "text": text})
@@ -33,7 +33,7 @@ class Host():
     def goto_state_failed(self):
         message = "{} Your server isn't responding properly. Please check {}"
         message = message.format(self.owner, self.name)
-        sendMessage(self.token, self.chat_id, message)
+        send_message(self.token, self.chat_id, message)
         self.state = State.failed
         self.recheck_at = datetime.datetime.now() + datetime.timedelta(
             **self.recheck_duration_para)
