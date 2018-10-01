@@ -49,6 +49,7 @@ class Host():
             sock.sendall(b'{"id": 2, "method": "server.version"}\n')
             received = sock.recv(1024)
 
+        # pylint: disable=broad-except
         except Exception as error:
             logging.warning(error)
             return False
