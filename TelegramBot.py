@@ -1,13 +1,14 @@
 # Server Monitoring Bot
 import argparse
-import json
-import socket
-import logging
 import datetime
+import json
+import logging
+import socket
 import time
 from enum import Enum
 
 import requests
+
 
 def sendMessage(token, chat_id, text):
     url = "https://api.telegram.org/bot{}/sendMessage".format(token)

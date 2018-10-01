@@ -9,6 +9,7 @@ requests = "*"
 [dev-packages]
 "flake8" = "*"
 pylint = "*"
+"flake8-import-order" = "*"
 
 [requires]
 python_version = "3.7"
