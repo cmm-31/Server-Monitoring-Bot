@@ -85,6 +85,7 @@ class _AutoNumber(Enum):
     def __new__(cls):
         value = len(cls.__members__) + 1
         obj = object.__new__(cls)
+        # pylint: disable=protected-access
         obj._value_ = value
         return obj
 
