@@ -49,8 +49,8 @@ class Host():
             sock.sendall(b'{"id": 2, "method": "server.version"}\n')
             received = sock.recv(1024)
 
-        except Exception as e:
-            logging.warning(e)
+        except Exception as error:
+            logging.warning(error)
             return False
 
         finally:
