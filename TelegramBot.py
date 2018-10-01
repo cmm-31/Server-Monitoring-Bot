@@ -108,8 +108,6 @@ def main():
                         help="set the check times, until the msg will be sent")
     args = parser.parse_args()
 
-    counter_limit = args.counter
-
     if args.debug and args.logfile:
         logging.basicConfig(filename="Logfile_debug", level=logging.DEBUG)
     elif args.debug:
@@ -120,14 +118,12 @@ def main():
         unit, amount = duration.split(":")
         recheck_duration[unit] = int(amount)
 
-    recheck_duration_para = recheck_duration
-
     Service = namedtuple('Service', ['host', 'owner'])
     services = []
     for host in args.hosts.split(","):
         owner, name, port = host.split(":")
-        services.append(Service(host=Host(name, port, counter_limit,
-                                          recheck_duration_para),
+        services.append(Service(host=Host(name, port, args.counter,
+                                          recheck_duration),
                                 owner=owner))
 
     while True:
