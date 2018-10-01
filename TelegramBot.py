@@ -17,7 +17,8 @@ def sendMessage(token, chat_id, text):
 
 
 class Host():
-    def __init__(self, owner, name, port, counter_limit, token, chat_id, recheck_duration_para):
+    def __init__(self, owner, name, port, counter_limit,
+                 token, chat_id, recheck_duration_para):
         self.name = name
         self.port = int(port)
         self.state = State.running
@@ -30,10 +31,12 @@ class Host():
         self.owner = owner
 
     def goto_state_failed(self):
-        message = "{} Your server isn't responding properly. Please check it: {}".format(self.owner, self.name)
+        message = "{} Your server isn't responding properly. Please check {}"
+        message = message.format(self.owner, self.name)
         sendMessage(self.token, self.chat_id, message)
         self.state = State.failed
-        self.recheck_at = datetime.datetime.now() + datetime.timedelta(**self.recheck_duration_para)
+        self.recheck_at = datetime.datetime.now() + datetime.timedelta(
+            **self.recheck_duration_para)
 
     def ping_server(self):
         # Create a socket (SOCK_STREAM means a TCP socket)
@@ -54,7 +57,8 @@ class Host():
         return version_dict["result"][0].startswith("ElectrumX")
 
     def goto_state_running(self):
-        logging.debug("Logging state is turned on running again for %s", self.name)
+        logging.debug(
+            "Logging state is turned on running again for %s", self.name)
         self.state = State.running
         self.counter = 0
 
@@ -91,12 +95,17 @@ class State(AutoNumber):
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("-t", "--token", dest="token", help="set bot token")
-    parser.add_argument("-id", "--chat_id", dest="chat_id", help="set the chat_id")
+    parser.add_argument("-id", "--chat_id", dest="chat_id",
+                        help="set the chat_id")
     parser.add_argument("-ho", "--hosts", dest="hosts", help="set the hosts")
-    parser.add_argument("-chec", "--recheck_duration", dest="recheck_duration", default="days:1", help="set the time until recheck")
-    parser.add_argument("-de", "--debug", dest="debug", default=False, type=bool, help="enable logging.debug if wanted")
-    parser.add_argument("-log", "--logfile", dest="logfile", default=False, type=bool, help="logging.debug creates a file")
-    parser.add_argument("-c", "--counter", dest="counter", default=5, type=int, help="set the check times, until the msg will be sent")
+    parser.add_argument("-chec", "--recheck_duration", dest="recheck_duration",
+                        default="days:1", help="set the time until recheck")
+    parser.add_argument("-de", "--debug", dest="debug", default=False,
+                        type=bool, help="enable logging.debug if wanted")
+    parser.add_argument("-log", "--logfile", dest="logfile", default=False,
+                        type=bool, help="logging.debug creates a file")
+    parser.add_argument("-c", "--counter", dest="counter", default=5, type=int,
+                        help="set the check times, until the msg will be sent")
     args = parser.parse_args()
 
     counter_limit = args.counter
@@ -118,7 +127,8 @@ def main():
     hosts = []
     for host in args.hosts.split(","):
         owner, name, port = host.split(":")
-        hosts.append(Host(owner, name, port, counter_limit, token, chat_id, recheck_duration_para))
+        hosts.append(Host(owner, name, port, counter_limit,
+                          token, chat_id, recheck_duration_para))
 
     while True:
         for host in hosts:
