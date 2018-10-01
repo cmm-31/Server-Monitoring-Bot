@@ -10,6 +10,7 @@ requests = "*"
 "flake8" = "*"
 pylint = "*"
 "flake8-import-order" = "*"
+"flake8-docstrings" = "*"
 
 [requires]
 python_version = "3.7"

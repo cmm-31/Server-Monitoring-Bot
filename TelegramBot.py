@@ -17,6 +17,8 @@ def send_message(token, chat_id, text):
 
 
 class Host():
+    """Host is a class representing the server."""
+
     def __init__(self, owner, name, port, counter_limit,
                  token, chat_id, recheck_duration_para):
         self.name = name
@@ -79,7 +81,7 @@ class Host():
         logging.debug("Ping was not successful for %s", self.name)
 
 
-class AutoNumber(Enum):
+class _AutoNumber(Enum):
     def __new__(cls):
         value = len(cls.__members__) + 1
         obj = object.__new__(cls)
@@ -87,7 +89,9 @@ class AutoNumber(Enum):
         return obj
 
 
-class State(AutoNumber):
+class State(_AutoNumber):
+    """State is an enum class representing the state of the server."""
+
     running = ()
     failed = ()
 
