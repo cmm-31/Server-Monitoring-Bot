@@ -5,6 +5,7 @@ import json
 import logging
 import socket
 import time
+from collections import namedtuple
 from enum import Enum
 
 import requests
@@ -19,23 +20,16 @@ def send_message(token, chat_id, text):
 class Host():
     """Host is a class representing the server."""
 
-    def __init__(self, owner, name, port, counter_limit,
-                 token, chat_id, recheck_duration_para):
+    def __init__(self, name, port, counter_limit, recheck_duration_para):
         self.name = name
         self.port = int(port)
         self.state = State.running
         self.counter = 0
         self.recheck_at = datetime.datetime.now()
         self.counter_limit = counter_limit
-        self.token = token
-        self.chat_id = chat_id
         self.recheck_duration_para = recheck_duration_para
-        self.owner = owner
 
     def goto_state_failed(self):
-        message = "{} Your server isn't responding properly. Please check {}"
-        message = message.format(self.owner, self.name)
-        send_message(self.token, self.chat_id, message)
         self.state = State.failed
         self.recheck_at = datetime.datetime.now() + datetime.timedelta(
             **self.recheck_duration_para)
@@ -115,8 +109,6 @@ def main():
     args = parser.parse_args()
 
     counter_limit = args.counter
-    token = args.token
-    chat_id = args.chat_id
 
     if args.debug and args.logfile:
         logging.basicConfig(filename="Logfile_debug", level=logging.DEBUG)
@@ -130,14 +122,17 @@ def main():
 
     recheck_duration_para = recheck_duration
 
-    hosts = []
+    Service = namedtuple('Service', ['host', 'owner'])
+    services = []
     for host in args.hosts.split(","):
         owner, name, port = host.split(":")
-        hosts.append(Host(owner, name, port, counter_limit,
-                          token, chat_id, recheck_duration_para))
+        services.append(Service(host=Host(name, port, counter_limit,
+                                          recheck_duration_para),
+                                owner=owner))
 
     while True:
-        for host in hosts:
+        for service in services:
+            host = service.host
             success = host.ping_server()
             if success:
                 host.log_successful_ping()
@@ -145,6 +140,10 @@ def main():
                 host.count_failed_ping()
                 if host.reached_max_fails():
                     host.goto_state_failed()
+                    message = "{} Your server isn't responding properly"
+                    message += " Please check {}"
+                    message = message.format(service.owner, host.name)
+                    send_message(args.token, args.chat_id, message)
 
             if host.reached_max_fails() and host.reached_rechecktime():
                 host.goto_state_running()
