@@ -20,19 +20,19 @@ def send_message(token, chat_id, text):
 class Host():
     """Host is a class representing the server."""
 
-    def __init__(self, name, port, counter_limit, recheck_duration_para):
+    def __init__(self, name, port, counter_limit, recheck_duration):
         self.name = name
         self.port = int(port)
         self.state = State.running
         self.counter = 0
         self.recheck_at = datetime.datetime.now()
         self.counter_limit = counter_limit
-        self.recheck_duration_para = recheck_duration_para
+        self.recheck_duration = recheck_duration
 
     def goto_state_failed(self):
         self.state = State.failed
         self.recheck_at = datetime.datetime.now() + datetime.timedelta(
-            **self.recheck_duration_para)
+            **self.recheck_duration)
 
     def ping_server(self):
         sock = None
