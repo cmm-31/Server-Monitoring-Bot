@@ -41,17 +41,14 @@ class Host():
         try:
             sock.connect((self.name, self.port))
             sock.sendall(b'{"id": 2, "method": "server.version"}\n')
-            received = sock.recv(1024)
-
+            response = json.loads(sock.recv(1024))
+            return response["result"][0].startswith("ElectrumX")
         # pylint: disable=broad-except
         except Exception as error:
             logging.warning(error)
             return False
-
         finally:
             sock.close()
-        version_dict = json.loads(received)
-        return version_dict["result"][0].startswith("ElectrumX")
 
     def goto_state_running(self):
         logging.debug(
