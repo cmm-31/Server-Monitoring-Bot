@@ -88,14 +88,14 @@ class State(Enum):
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("-t", "--token", dest="token", help="set bot token")
-    parser.add_argument("-id", "--chat_id", dest="chat_id",
+    parser.add_argument("-i", "--chat_id", dest="chat_id",
                         help="set the chat_id")
-    parser.add_argument("-ho", "--hosts", dest="hosts", help="set the hosts")
-    parser.add_argument("-chec", "--recheck_duration", dest="recheck_duration",
+    parser.add_argument("-s", "--hosts", dest="hosts", help="set the hosts")
+    parser.add_argument("-r", "--recheck_duration", dest="recheck_duration",
                         default="days:1", help="set the time until recheck")
-    parser.add_argument("-de", "--debug", dest="debug", default=False,
+    parser.add_argument("-d", "--debug", dest="debug", default=False,
                         type=bool, help="enable logging.debug if wanted")
-    parser.add_argument("-log", "--logfile", dest="logfile", default=False,
+    parser.add_argument("-l", "--logfile", dest="logfile", default=False,
                         type=bool, help="logging.debug creates a file")
     parser.add_argument("-c", "--counter", dest="counter", default=5, type=int,
                         help="set the check times, until the msg will be sent")
