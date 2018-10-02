@@ -67,8 +67,8 @@ class Host():
     def reached_rechecktime(self):
         return self.recheck_at < datetime.datetime.now()
 
-    def reached_max_fails(self):
-        return self.counter == self.counter_limit
+    def keep_retrying(self):
+        return self.counter < self.counter_limit
 
     def count_failed_ping(self):
         self.counter += 1
@@ -130,7 +130,7 @@ def main():
                 host.log_successful_ping()
             elif host.is_state_running():
                 host.count_failed_ping()
-                if host.reached_max_fails():
+                if not host.keep_retrying():
                     host.goto_state_failed()
                     message = "{} Your server isn't responding properly"
                     message += " Please check {}"
