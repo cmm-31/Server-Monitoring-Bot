@@ -70,7 +70,7 @@ class Host():
     def keep_retrying(self):
         return self.counter < self.counter_limit
 
-    def count_failed_ping(self):
+    def mark_failure(self):
         self.counter += 1
         logging.debug("Ping was not successful for %s", self.name)
 
@@ -129,7 +129,7 @@ def main():
             if success:
                 host.log_successful_ping()
             elif host.is_state_running():
-                host.count_failed_ping()
+                host.mark_failure()
                 if not host.keep_retrying():
                     host.goto_state_failed()
                     message = "{} Your server isn't responding properly"
