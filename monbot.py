@@ -35,11 +35,9 @@ class Host():
             **self.recheck_duration_para)
 
     def ping_server(self):
-        # Create a socket (SOCK_STREAM means a TCP socket)
-        sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-
+        sock = None
         try:
-            sock.connect((self.name, self.port))
+            sock = socket.create_connection((self.name, self.port), 5)
             sock.sendall(b'{"id": 2, "method": "server.version"}\n')
             response = json.loads(sock.recv(1024))
             return response["result"][0].startswith("ElectrumX")
@@ -48,7 +46,8 @@ class Host():
             logging.warning(error)
             return False
         finally:
-            sock.close()
+            if sock is not None:
+                sock.close()
 
     def goto_state_running(self):
         logging.debug(
