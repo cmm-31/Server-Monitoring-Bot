@@ -61,6 +61,9 @@ class Host():
     def is_state_running(self):
         return self.state == State.running
 
+    def is_state_failed(self):
+        return self.state == State.failed
+
     def reached_rechecktime(self):
         return self.recheck_at < datetime.datetime.now()
 
@@ -134,7 +137,7 @@ def main():
                     message = message.format(service.owner, host.name)
                     send_message(args.token, args.chat_id, message)
 
-            if host.reached_max_fails() and host.reached_rechecktime():
+            if host.is_state_failed() and host.reached_rechecktime():
                 host.goto_state_running()
         time.sleep(10)
 
