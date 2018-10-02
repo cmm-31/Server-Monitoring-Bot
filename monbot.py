@@ -72,17 +72,14 @@ class Host():
         logging.debug("Ping was not successful for %s", self.name)
 
 
-class _AutoNumber(Enum):
+class State(Enum):
+    """State is an enum class representing the state of the server."""
+
     def __new__(cls):
-        value = len(cls.__members__) + 1
         obj = object.__new__(cls)
         # pylint: disable=protected-access
-        obj._value_ = value
+        obj._value_ = len(cls.__members__) + 1
         return obj
-
-
-class State(_AutoNumber):
-    """State is an enum class representing the state of the server."""
 
     running = ()
     failed = ()
