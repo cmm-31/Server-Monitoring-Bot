@@ -29,11 +29,6 @@ class Host():
         self.counter_limit = counter_limit
         self.recheck_duration = recheck_duration
 
-    def goto_state_failed(self):
-        self.state = State.failed
-        self.recheck_at = datetime.datetime.now() + datetime.timedelta(
-            **self.recheck_duration)
-
     def ping_server(self):
         sock = None
         try:
@@ -49,30 +44,28 @@ class Host():
             if sock is not None:
                 sock.close()
 
-    def goto_state_running(self):
-        logging.debug(
-            "Logging state is turned on running again for %s", self.name)
-        self.state = State.running
-        self.counter = 0
-
     def log_successful_ping(self):
         logging.debug("Ping was successful for %s", self.name)
 
-    def is_state_running(self):
-        return self.state == State.running
-
-    def is_state_failed(self):
+    def is_failed(self):
+        transition_to_running = self.recheck_at < datetime.datetime.now()
+        if transition_to_running and self.state != State.running:
+            logging.debug("state transition into running for %s", self.name)
+            self.state = State.running
+            self.counter = 0
         return self.state == State.failed
 
-    def is_recheck_due(self):
-        return self.recheck_at < datetime.datetime.now()
-
-    def keep_retrying(self):
-        return self.counter < self.counter_limit
-
-    def mark_failure(self):
+    def is_retrying(self):
         self.counter += 1
-        logging.debug("Ping was not successful for %s", self.name)
+        logging.debug("encountered failure for %s", self.name)
+        if self.counter < self.counter_limit:
+            return True
+        if self.state != State.failed:
+            logging.debug("state transition into failed for %s", self.name)
+            self.state = State.failed
+            self.recheck_at = datetime.datetime.now() + datetime.timedelta(
+                **self.recheck_duration)
+        return False
 
 
 class State(Enum):
@@ -125,20 +118,17 @@ def main():
     while True:
         for service in services:
             host = service.host
+            if host.is_failed():
+                continue
             success = host.ping_server()
             if success:
                 host.log_successful_ping()
-            elif host.is_state_running():
-                host.mark_failure()
-                if not host.keep_retrying():
-                    host.goto_state_failed()
-                    message = "{} Your server isn't responding properly"
-                    message += " Please check {}"
-                    message = message.format(service.owner, host.name)
-                    send_message(args.token, args.chat_id, message)
+            elif not host.is_retrying():
+                message = "{} Your server isn't responding properly"
+                message += " Please check {}"
+                message = message.format(service.owner, host.name)
+                send_message(args.token, args.chat_id, message)
 
-            if host.is_state_failed() and host.is_recheck_due():
-                host.goto_state_running()
         time.sleep(10)
 
 
