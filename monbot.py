@@ -13,7 +13,6 @@ import requests
 
 def send_message(token, chat_id, text):
     url = "https://api.telegram.org/bot{}/sendMessage".format(token)
-
     requests.post(url, data={"chat_id": chat_id, "text": text})
 
 
