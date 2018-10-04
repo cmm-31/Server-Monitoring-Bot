@@ -5,7 +5,6 @@ import json
 import logging
 import socket
 import time
-from collections import namedtuple
 from enum import Enum
 
 import requests
@@ -29,17 +28,14 @@ class Host():
         self.max_retries = max_retries
         self.recheck_duration = recheck_duration
 
-    def ping_server(self):
+    def get_block_height(self):
         sock = None
         try:
             sock = socket.create_connection((self.name, self.port), 5)
-            sock.sendall(b'{"id": 2, "method": "server.version"}\n')
+            sock.sendall(
+                b'{"id": 2, "method": "blockchain.headers.subscribe"}\n')
             response = json.loads(sock.recv(1024))
-            return response["result"][0].startswith("ElectrumX")
-        # pylint: disable=broad-except
-        except Exception as error:
-            logging.warning(error)
-            return False
+            return response["result"]["block_height"]
         finally:
             if sock is not None:
                 sock.close()
@@ -104,24 +100,38 @@ def main():
         unit, amount = duration.split(":")
         recheck_duration[unit] = int(amount)
 
-    Service = namedtuple('Service', ['host', 'owner'])
     services = []
     for host in args.hosts.split(","):
         owner, name, port = host.split(":")
-        services.append(Service(host=Host(name, port, args.max_retries,
-                                          recheck_duration),
-                                owner=owner))
+        service = {
+            "host": Host(name, port, args.max_retries, recheck_duration),
+            "owner": owner,
+            "block_height": 0,
+        }
+        try:
+            service["block_height"] = service["host"].get_block_height()
+            logging.warning("%s is at block height %d",
+                            name, service["block_height"])
+        # pylint: disable=broad-except
+        except Exception as error:
+            logging.warning("%s errors with: %s", name, error)
+        services.append(service)
 
     while True:
         for service in services:
-            host = service.host
+            host = service["host"]
             if host.is_failed():
                 continue
-            if not host.ping_server() and not host.is_retrying():
-                message = "{} Your server isn't responding properly"
-                message += " Please check {}"
-                message = message.format(service.owner, host.name)
-                send_message(args.token, args.chat_id, message)
+            try:
+                service["block_height"] = host.get_block_height()
+            # pylint: disable=broad-except
+            except Exception as error:
+                logging.warning(error)
+                if not host.is_retrying():
+                    message = "{} Your server isn't responding properly"
+                    message += " Please check {}"
+                    message = message.format(service["owner"], host.name)
+                    send_message(args.token, args.chat_id, message)
 
         time.sleep(10)
 
