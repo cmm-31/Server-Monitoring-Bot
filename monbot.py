@@ -44,9 +44,6 @@ class Host():
             if sock is not None:
                 sock.close()
 
-    def log_successful_ping(self):
-        logging.debug("Ping was successful for %s", self.name)
-
     def is_failed(self):
         transition_to_running = self.recheck_at < datetime.datetime.now()
         if transition_to_running and self.state != State.running:
@@ -120,10 +117,7 @@ def main():
             host = service.host
             if host.is_failed():
                 continue
-            success = host.ping_server()
-            if success:
-                host.log_successful_ping()
-            elif not host.is_retrying():
+            if not host.ping_server() and not host.is_retrying():
                 message = "{} Your server isn't responding properly"
                 message += " Please check {}"
                 message = message.format(service.owner, host.name)
