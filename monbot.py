@@ -78,7 +78,7 @@ class State(Enum):
     failed = ()
 
 
-def main():
+def parse_args():
     parser = argparse.ArgumentParser()
     parser.add_argument("-t", "--token", dest="token", help="set bot token")
     parser.add_argument("-c", "--chat_id", dest="chat_id",
@@ -95,8 +95,11 @@ def main():
     parser.add_argument("-l", "--max-block-height-lag",
                         dest="max_block_height_lag", default=10, type=int,
                         help="the number of blocks a server is allowed to lag")
-    args = parser.parse_args()
+    return parser.parse_args()
 
+
+def main():
+    args = parse_args()
     if args.debug and args.logfile:
         logging.basicConfig(filename="Logfile_debug", level=logging.DEBUG)
     elif args.debug:
