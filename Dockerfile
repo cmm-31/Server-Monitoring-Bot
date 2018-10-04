@@ -1,6 +1,6 @@
 FROM python
 
-COPY TelegramBot.py /
+COPY monbot.py /
 RUN pip install requests
 ENTRYPOINT [ "/usr/local/bin/python" ]
-CMD [ "/TelegramBot.py" ]
+CMD [ "/monbot.py", "--help" ]
