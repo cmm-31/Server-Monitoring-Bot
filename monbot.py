@@ -53,12 +53,16 @@ class Host():
         logging.debug("encountered failure for %s", self.name)
         if self.retries < self.max_retries:
             return True
-        if self.state != State.failed:
-            logging.debug("state transition into failed for %s", self.name)
-            self.state = State.failed
-            self.recheck_at = datetime.datetime.now() + datetime.timedelta(
-                **self.recheck_duration)
+        self.mark_failed()
         return False
+
+    def mark_failed(self):
+        if self.state == State.failed:
+            return
+        logging.debug("state transition into failed for %s", self.name)
+        self.state = State.failed
+        self.recheck_at = datetime.datetime.now() + datetime.timedelta(
+            **self.recheck_duration)
 
 
 class State(Enum):
@@ -84,10 +88,13 @@ def main():
                         default="days:1", help="set the time until recheck")
     parser.add_argument("-d", "--debug", dest="debug", default=False,
                         type=bool, help="enable logging.debug if wanted")
-    parser.add_argument("-l", "--logfile", dest="logfile", default=False,
+    parser.add_argument("-f", "--logfile", dest="logfile", default=False,
                         type=bool, help="logging.debug creates a file")
     parser.add_argument("-m", "--max-retries", dest="max_retries", default=5,
                         type=int, help="the number of retries upon failure")
+    parser.add_argument("-l", "--max-block-height-lag",
+                        dest="max_block_height_lag", default=10, type=int,
+                        help="the number of blocks a server is allowed to lag")
     args = parser.parse_args()
 
     if args.debug and args.logfile:
@@ -117,6 +124,8 @@ def main():
             logging.warning("%s errors with: %s", name, error)
         services.append(service)
 
+    max_block_height = max(x["block_height"] for x in services)
+
     while True:
         for service in services:
             host = service["host"]
@@ -132,6 +141,18 @@ def main():
                     message += " Please check {}"
                     message = message.format(service["owner"], host.name)
                     send_message(args.token, args.chat_id, message)
+                continue
+            if service["block_height"] > max_block_height:
+                max_block_height = service["block_height"]
+                continue
+            block_height_lag = max_block_height - service["block_height"]
+            if block_height_lag <= args.max_block_height_lag:
+                continue
+            host.mark_failed()
+            message = "{} {} is at block height {} but should be at {}".format(
+                service["owner"], host.name, service["block_height"],
+                max_block_height)
+            send_message(args.token, args.chat_id, message)
 
         time.sleep(10)
 
