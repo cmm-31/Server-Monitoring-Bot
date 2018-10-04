@@ -20,13 +20,13 @@ def send_message(token, chat_id, text):
 class Host():
     """Host is a class representing the server."""
 
-    def __init__(self, name, port, counter_limit, recheck_duration):
+    def __init__(self, name, port, max_retries, recheck_duration):
         self.name = name
         self.port = int(port)
         self.state = State.running
-        self.counter = 0
+        self.retries = 0
         self.recheck_at = datetime.datetime.now()
-        self.counter_limit = counter_limit
+        self.max_retries = max_retries
         self.recheck_duration = recheck_duration
 
     def ping_server(self):
@@ -49,13 +49,13 @@ class Host():
         if transition_to_running and self.state != State.running:
             logging.debug("state transition into running for %s", self.name)
             self.state = State.running
-            self.counter = 0
+            self.retries = 0
         return self.state == State.failed
 
     def is_retrying(self):
-        self.counter += 1
+        self.retries += 1
         logging.debug("encountered failure for %s", self.name)
-        if self.counter < self.counter_limit:
+        if self.retries < self.max_retries:
             return True
         if self.state != State.failed:
             logging.debug("state transition into failed for %s", self.name)
@@ -81,7 +81,7 @@ class State(Enum):
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("-t", "--token", dest="token", help="set bot token")
-    parser.add_argument("-i", "--chat_id", dest="chat_id",
+    parser.add_argument("-c", "--chat_id", dest="chat_id",
                         help="set the chat_id")
     parser.add_argument("-s", "--hosts", dest="hosts", help="set the hosts")
     parser.add_argument("-r", "--recheck_duration", dest="recheck_duration",
@@ -90,8 +90,8 @@ def main():
                         type=bool, help="enable logging.debug if wanted")
     parser.add_argument("-l", "--logfile", dest="logfile", default=False,
                         type=bool, help="logging.debug creates a file")
-    parser.add_argument("-c", "--counter", dest="counter", default=5, type=int,
-                        help="set the check times, until the msg will be sent")
+    parser.add_argument("-m", "--max-retries", dest="max_retries", default=5,
+                        type=int, help="the number of retries upon failure")
     args = parser.parse_args()
 
     if args.debug and args.logfile:
@@ -108,7 +108,7 @@ def main():
     services = []
     for host in args.hosts.split(","):
         owner, name, port = host.split(":")
-        services.append(Service(host=Host(name, port, args.counter,
+        services.append(Service(host=Host(name, port, args.max_retries,
                                           recheck_duration),
                                 owner=owner))
 
