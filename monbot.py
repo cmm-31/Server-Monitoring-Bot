@@ -140,8 +140,8 @@ def main():
             except Exception as error:
                 logging.warning(error)
                 if not host.is_retrying():
-                    message = "{} {} isn't responding properly".format(
-                        service["owner"], host.name)
+                    message = "{} {} erros with:\n```\n{}\n```".format(
+                        service["owner"], host.name, str(error))
                     send_message(args.token, args.chat_id, message)
                 continue
             if service["block_height"] > max_block_height:
