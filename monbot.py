@@ -93,7 +93,7 @@ def parse_args():
     parser.add_argument("-m", "--max-retries", dest="max_retries", default=5,
                         type=int, help="the number of retries upon failure")
     parser.add_argument("-l", "--max-block-height-lag",
-                        dest="max_block_height_lag", default=10, type=int,
+                        dest="max_block_height_lag", default=20, type=int,
                         help="the number of blocks a server is allowed to lag")
     return parser.parse_args()
 
